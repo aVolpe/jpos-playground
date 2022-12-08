@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.security.SecureRandom;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Arturo Volpe
@@ -11,7 +15,15 @@ import java.nio.ByteBuffer;
  */
 public class CreateEcho {
 
-    public boolean pipe(InputStream msg, boolean includeLength, OutputStream os) throws IOException {
+    private final List<DelayConfig> delayConfigs;
+    private final Random random;
+
+    public CreateEcho(List<DelayConfig> delayConfigs) {
+        this.delayConfigs = delayConfigs;
+        this.random = new SecureRandom();
+    }
+
+    public boolean pipe(InputStream msg, boolean includeLength, OutputStream os) throws IOException, InterruptedException {
 
         byte[] full;
         byte[] msgLengthAsBytes = new byte[2];
@@ -30,9 +42,17 @@ public class CreateEcho {
             }
         } else {
             full = msg.readAllBytes();
-            length = full.length;
         }
 
+
+        double chance = random.nextDouble(100d);
+        for (DelayConfig dc : this.delayConfigs) {
+            if (chance > dc.percentile && dc.sleep > 0) {
+                System.out.println("The percentile %f , sleeping for %d".formatted(chance, dc.sleep));
+                TimeUnit.MILLISECONDS.sleep(dc.sleep);
+                break;
+            }
+        }
 
         full[1] = 0x10;
 
@@ -63,5 +83,8 @@ public class CreateEcho {
         }
         byteBuffer.position(0);
         return byteBuffer.getInt();
+    }
+
+    public record DelayConfig(double percentile, int sleep) {
     }
 }

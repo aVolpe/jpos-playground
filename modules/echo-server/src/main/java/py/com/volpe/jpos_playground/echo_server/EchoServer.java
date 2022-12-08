@@ -1,8 +1,11 @@
 package py.com.volpe.jpos_playground.echo_server;
 
+import py.com.volpe.jpos_playground.echo_server.CreateEcho.DelayConfig;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -46,11 +49,15 @@ public class EchoServer {
         @Override
         public void run() {
             try {
-                CreateEcho echo = new CreateEcho();
+                CreateEcho echo = new CreateEcho(Arrays.asList(
+                        new DelayConfig(95d, 1000),// 5% of the time sleep 1000 miliseconds
+                        new DelayConfig(90d, 100), // 10% of the time sleep 100 miliseconds,
+                        new DelayConfig(0d, 0) // the rest of the time don't sleep
+                ));
                 while (echo.pipe(socket.getInputStream(), true, socket.getOutputStream())) {
                     System.out.println("msg sended");
                 }
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }

@@ -4,11 +4,13 @@ import org.jpos.iso.ISOMsg;
 import org.jpos.iso.ISOUtil;
 import org.jpos.iso.packager.GenericPackager;
 import org.junit.jupiter.api.Test;
+import py.com.volpe.jpos_playground.echo_server.CreateEcho.DelayConfig;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -32,7 +34,11 @@ class CreateEchoTest {
         try (InputStream is = new ByteArrayInputStream(msg.pack());
              ByteArrayOutputStream os = new ByteArrayOutputStream()) {
 
-            new CreateEcho().pipe(is, false, os);
+            new CreateEcho(Arrays.asList(
+                    new DelayConfig(95d, 1000),// 5% of the time sleep 1000 miliseconds
+                    new DelayConfig(90d, 100), // 10% of the time sleep 100 miliseconds,
+                    new DelayConfig(0d, 0) // the rest of the time don't sleep
+            )).pipe(is, false, os);
 
             ISOMsg echoed = new ISOMsg();
             echoed.setPackager(gp);
