@@ -1,0 +1,11 @@
+pluginManagement {
+    repositories {
+        maven { url = uri('https://jpos.org/maven') }
+        mavenLocal()
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'jpos-playground'
+
+include 'modules:echo-server'
